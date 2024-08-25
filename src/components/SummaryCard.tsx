@@ -11,7 +11,15 @@ interface SummaryCardProps {
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ city, country, currentTemperature, date }) => {
   return (
-    <Card sx={{ marginTop: 3 }}>
+    <Card
+      sx={{
+        marginTop: 3,
+        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
+        borderRadius: 2,
+        overflow: 'hidden',
+        backgroundColor: 'background.paper',
+      }}
+    >
       <CardContent>
         <Typography variant="h5" gutterBottom>
           {city}, {country}
