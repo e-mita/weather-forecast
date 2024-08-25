@@ -11,6 +11,7 @@ export const fetchWeatherData = async (
   setError(null);
 
   try {
+    // eslint-disable-next-line no-lone-blocks
     {
       /* 
           Since the fetching of the data was really fast,
