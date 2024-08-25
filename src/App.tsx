@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Container, CssBaseline, Box, LinearProgress } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate, useParams } from 'react-router-dom';
+import { format } from 'date-fns';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import WeatherChart from './components/WeatherChart';
 import ErrorModal from './components/ErrorModal';
+import SummaryCard from './components/SummaryCard';
 import { fetchWeatherData as fetchWeatherDataService } from './services/weatherService';
 
 const App: React.FC = () => {
@@ -14,6 +16,7 @@ const App: React.FC = () => {
 
   const [city, setCity] = useState<string>('');
   const [country, setCountry] = useState<string>('');
+  const [currentTemperature, setCurrentTemperature] = useState<number | null>(null);
   const [weatherData, setWeatherData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,12 +25,35 @@ const App: React.FC = () => {
   const { cityName } = useParams<{ cityName: string }>();
 
   const fetchWeatherData = useCallback(
-    (cityName: string) => {
+    async (cityName: string) => {
       fetchWeatherDataService(
         cityName,
         setLoading,
         setError,
-        setWeatherData,
+        (data) => {
+          setWeatherData(data);
+
+          const now = new Date();
+          const romaniaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Bucharest' }));
+          const currentHour = romaniaTime.getHours();
+          const currentMinutes = romaniaTime.getMinutes();
+
+          const closestDataPoint = data.reduce((closest: any, point: any) => {
+            const [pointHour, pointMinutes] = point.time.split(':').map(Number);
+
+            const pointTimeInMinutes = pointHour * 60 + pointMinutes;
+            const currentTimeInMinutes = currentHour * 60 + currentMinutes;
+
+            const currentDiff = Math.abs(pointTimeInMinutes - currentTimeInMinutes);
+            const closestDiff = Math.abs(
+              parseInt(closest.time.split(':')[0], 10) * 60 + parseInt(closest.time.split(':')[1], 10) - currentTimeInMinutes
+            );
+
+            return currentDiff < closestDiff ? point : closest;
+          }, data[0]);
+
+          setCurrentTemperature(closestDataPoint.temperature);
+        },
         setCity,
         setCountry,
         navigate
@@ -62,6 +88,8 @@ const App: React.FC = () => {
     },
   });
 
+  const todayDate = format(new Date(), 'eeee, MMMM do, yyyy');
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -82,6 +110,14 @@ const App: React.FC = () => {
         {!loading && weatherData && (
           <Box mt={5}>
             <WeatherChart data={weatherData} />
+            {currentTemperature !== null && (
+              <SummaryCard
+                city={city}
+                country={country}
+                currentTemperature={currentTemperature}
+                date={todayDate}
+              />
+            )}
           </Box>
         )}
       </Container>

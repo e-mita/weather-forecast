@@ -1,3 +1,6 @@
+import { format, parseISO } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
+
 export const fetchWeatherData = async (
   cityName: string,
   setLoading: (loading: boolean) => void,
@@ -11,14 +14,6 @@ export const fetchWeatherData = async (
   setError(null);
 
   try {
-    // eslint-disable-next-line no-lone-blocks
-    {
-      /* 
-          Since the fetching of the data was really fast,
-          I added a hardcoded delay so we can see the loading component
-          (and get that bonus point 🤓)
-          */
-    }
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const geoResponse = await fetch(
@@ -37,14 +32,18 @@ export const fetchWeatherData = async (
     );
     const weatherData = await weatherResponse.json();
 
+    const timezone = "Europe/Bucharest";
+
     const formattedData = weatherData.hourly.time.map(
-      (time: string, index: number) => ({
-        time: new Date(time).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        temperature: weatherData.hourly.temperature_2m[index],
-      })
+      (time: string, index: number) => {
+        const utcDate = parseISO(time);
+        const zonedDate = toZonedTime(utcDate, timezone);
+        const formattedTime = format(zonedDate, "HH:mm");
+        return {
+          time: formattedTime,
+          temperature: weatherData.hourly.temperature_2m[index],
+        };
+      }
     );
 
     setWeatherData(formattedData);
