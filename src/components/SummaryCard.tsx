@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Card, CardContent, Typography } from '@mui/material';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 
@@ -10,6 +10,30 @@ interface SummaryCardProps {
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ city, country, currentTemperature, date }) => {
+  const [romaniaTime, setRomaniaTime] = useState<string>(() => {
+    return new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'Europe/Bucharest',
+    }).format(new Date());
+  });
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setRomaniaTime(
+        new Intl.DateTimeFormat('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          timeZone: 'Europe/Bucharest',
+        }).format(new Date())
+      );
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
   return (
     <Card
       sx={{
@@ -24,8 +48,18 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ city, country, currentTempera
         <Typography variant="h5" gutterBottom>
           {city}, {country}
         </Typography>
-        <Typography variant="body2" color="textSecondary">
+        <Typography
+          color="textSecondary"
+          sx={{ fontSize: '1.1rem' }}
+        >
           {date}
+        </Typography>
+        <Typography
+          color="textSecondary"
+          sx={{ fontSize: '1.1rem' }}
+          mt={1}
+        >
+          Current Time: {romaniaTime}
         </Typography>
         <Box display="flex" alignItems="center" mt={2}>
           <WbSunnyIcon sx={{ marginRight: 1 }} />
