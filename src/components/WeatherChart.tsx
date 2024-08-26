@@ -21,6 +21,7 @@ const WeatherChart: React.FC<WeatherChartProps> = ({ data = [] }) => {
         borderRadius: 2,
         overflow: 'hidden',
         backgroundColor: 'background.paper',
+        paddingTop: '20px'
       }}
     >
       <ResponsiveContainer width="95%" height={400}>
